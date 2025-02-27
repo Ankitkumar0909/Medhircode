@@ -12,7 +12,7 @@
 
         stage('Build Backend') {
             steps {
-                sh 'gradle build'  // Build the backend project
+                sh '/opt/homebrew/bin/gradle build'  // Build the backend project
             }
         }
 
