@@ -1,0 +1,18 @@
+- name: Deploy Backend Locally
+  hosts: local
+  tasks:
+
+    - name: Build Docker Image
+      command: docker build -t backend-app .
+
+    - name: Stop Running Container (if exists)
+      command: docker stop backend-app
+      ignore_errors: yes
+
+    - name: Remove Existing Container (if exists)
+      command: docker rm backend-app
+      ignore_errors: yes
+
+    - name: Run New Docker Container
+      command: docker run -d --name backend-app -p 8080:8080 backend-app
+
