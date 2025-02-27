@@ -18,7 +18,7 @@
 
         stage('Run Ansible to Deploy Locally') {
             steps {
-                sh 'ansible-playbook -i inventory deploy_backend.yml'
+                sh '/opt/homebrew/bin/ansible-playbook -i inventory deploy_backend.yml'
             }
         }
     }
