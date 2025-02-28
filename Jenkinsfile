@@ -1,4 +1,3 @@
-
 pipeline {
     agent any
 
@@ -25,21 +24,20 @@ pipeline {
         stage('Build Podman Image') {
             steps {
                 script {
-                    podmanBuild image: “${Medhir_code}”, contextPath: '.', buildArgs: ''
+                    sh "podman build -t ${IMAGE_NAME} ."
                 }
             }
         }
 
         stage('Save Image as TAR File') {
             steps {
-                sh "podman save -o ${TAR_FILE} ${Medhir_code}”
+                sh "podman save -o ${TAR_FILE} ${IMAGE_NAME}"
             }
         }
 
         stage('Upload TAR to Remote Server') {
             steps {
                 sh "scp ${TAR_FILE} ankitm@192.168.0.200:/home/user/"
-
             }
         }
 
