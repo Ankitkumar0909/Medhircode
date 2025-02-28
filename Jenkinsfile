@@ -31,7 +31,7 @@ pipeline {
     steps {
         sh """
         ssh -o StrictHostKeyChecking=no ankit@192.168.1.100 << 'EOF'
-        cd /home/ankitm/
+        cd /shared/
 
         echo "Stopping and removing existing container..."
         podman stop myapp || true
