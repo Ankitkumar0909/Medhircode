@@ -4,8 +4,8 @@ pipeline {
     environment {
         SERVER_IP = "192.168.0.200"   // Remote server IP
         SSH_USER = "ankitm"           // SSH username
-        JAR_FILE = "build/libs/myapp.jar"  // Path to JAR file after build
-        REMOTE_PATH = "/home/ankitm/myapp.jar"  // Destination on remote server
+        JAR_FILE = "build/libs/backend.jar"  // Path to JAR file after build
+        REMOTE_PATH = "/shared/backend.jar"  // Destination on remote server
     }
 
     stages {
@@ -40,12 +40,12 @@ pipeline {
         echo "Building new image..."
         podman build -t myapp:latest -f- <<EOL
         FROM openjdk:17
-        COPY myapp.jar /app.jar
-        CMD ["java", "-jar", "/app.jar"]
+        COPY backend.jar /backend.jar
+        CMD ["java", "-jar", "/backend.jar"]
         EOL
 
         echo "Running new container..."
-        podman run -d --name myapp -p 4000:4000 myapp:latest
+        podman run -d --name backend -p 4000:4000 backend:latest
         EOF
         """
             }
