@@ -7,7 +7,6 @@ pipeline {
         JAR_FILE = "build/libs/backend-0.0.1-SNAPSHOT.jar"  // Path to JAR file after build
         REMOTE_PATH = "/home/ankitm/shared/backend-0.0.1-SNAPSHOT.jar"  // Destination on remote server
     }
-
     stages {
         stage('Extract Code') {
             steps {
