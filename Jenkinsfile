@@ -6,12 +6,13 @@ pipeline {
         APP_NAME = "myapp"
         IMAGE_NAME = "myapp:latest"
         TAR_FILE = "myapp.tar"
+        PODMAN_PATH = "/opt/homebrew/bin/podman"  // Ensure correct Podman path
     }
 
     stages {
         stage('Extract Code') {
             steps {
-                   git branch: 'main', url: 'https://github.com/Ankitkumar0909/Medhircode.git'
+                git branch: 'main', url: 'https://github.com/Ankitkumar0909/Medhircode.git'
             }
         }
 
@@ -24,20 +25,20 @@ pipeline {
         stage('Build Podman Image') {
             steps {
                 script {
-                    sh "podman build -t ${IMAGE_NAME} ."
+                    sh "${PODMAN_PATH} build -t ${IMAGE_NAME} ."
                 }
             }
         }
 
         stage('Save Image as TAR File') {
             steps {
-                sh "podman save -o ${TAR_FILE} ${IMAGE_NAME}"
+                sh "${PODMAN_PATH} save -o ${TAR_FILE} ${IMAGE_NAME}"
             }
         }
 
         stage('Upload TAR to Remote Server') {
             steps {
-                sh "scp ${TAR_FILE} ankitm@192.168.0.200:/home/user/"
+                sh "scp ${TAR_FILE} ankitm@${SERVER_IP}:/home/ankitm/"
             }
         }
 
