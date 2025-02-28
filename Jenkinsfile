@@ -29,7 +29,7 @@ pipeline {
        stage('Deploy to Podman on Remote Server') {
     steps {
         sh """
-        ssh -o StrictHostKeyChecking=no ankit@192.168.1.100 << 'EOF'
+        ssh -o StrictHostKeyChecking=no ankitm@192.168.0.200 << 'EOF'
         cd /shared/
 
         echo "Stopping and removing existing container..."
