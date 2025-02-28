@@ -23,7 +23,7 @@ pipeline {
 
         stage('Transfer JAR to Remote Server') {
             steps {
-                sh "scp -o StrictHostKeyChecking=no ${JAR_FILE} ankitm@192.168.0.200:/home/ankitm/myapp.jar"
+                sh "scp -o StrictHostKeyChecking=no ${JAR_FILE} ankitm@192.168.0.200:/shared/backend.jar"
             }
         }
 
