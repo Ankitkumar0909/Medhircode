@@ -1,20 +1,16 @@
-- name: Deploy Backend Locally
-  hosts: local
+- hosts: remote_server
+  become: yes
   tasks:
+    - name: Load Podman Image from TAR
+      command: podman load -i /home/user/myapp.tar
 
-    - name: Test Connectivity
-      ping:
-
-    - name: Build Docker Image
-      command: docker build -t backend-app .
-
-    - name: Stop Running Container (if exists)
-      command: docker stop backend-app
+    - name: Stop existing container (if running)
+      command: podman stop myapp || true
       ignore_errors: yes
 
-    - name: Remove Existing Container (if exists)
-      command: docker rm backend-app
+    - name: Remove old container (if exists)
+      command: podman rm myapp || true
       ignore_errors: yes
 
-    - name: Run New Docker Container
-      command: docker run -d --name backend-app -p 8080:8080 backend-app
+    - name: Run the new container
+      command: podman run -d --name myapp -p 8080:8080 myapp:latest
