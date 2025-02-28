@@ -2,11 +2,10 @@ pipeline {
     agent any
 
     environment {
-        SERVER_IP = "192.168.0.200"  // Remote server IP
-        APP_NAME = "myapp"
-        IMAGE_NAME = "myapp:latest"
-        TAR_FILE = "myapp.tar"
-        PODMAN_PATH = "/opt/homebrew/bin/podman"  // Ensure correct Podman path
+        SERVER_IP = "192.168.0.200"   // Remote server IP
+        SSH_USER = "ankitm"           // SSH username
+        JAR_FILE = "build/libs/myapp.jar"  // Path to JAR file after build
+        REMOTE_PATH = "/home/ankitm/myapp.jar"  // Destination on remote server
     }
 
     stages {
@@ -22,29 +21,33 @@ pipeline {
             }
         }
 
-        stage('Build Podman Image') {
+        stage('Transfer JAR to Remote Server') {
             steps {
-                script {
-                    sh "${PODMAN_PATH} build -t ${IMAGE_NAME} ."
-                }
+                sh "scp -o StrictHostKeyChecking=no ${JAR_FILE} ankitm@192.168.0.200:/home/ankitm/myapp.jar"
             }
         }
 
-        stage('Save Image as TAR File') {
-            steps {
-                sh "${PODMAN_PATH} save -o ${TAR_FILE} ${IMAGE_NAME}"
-            }
-        }
+       stage('Deploy to Podman on Remote Server') {
+    steps {
+        sh """
+        ssh -o StrictHostKeyChecking=no ankit@192.168.1.100 << 'EOF'
+        cd /home/ankitm/
 
-        stage('Upload TAR to Remote Server') {
-            steps {
-                sh "scp ${TAR_FILE} ankitm@${SERVER_IP}:/home/ankitm/"
-            }
-        }
+        echo "Stopping and removing existing container..."
+        podman stop myapp || true
+        podman rm myapp || true
 
-        stage('Deploy Using Ansible') {
-            steps {
-                ansiblePlaybook credentialsId: 'ansible-ssh-key', inventory: 'inventory.ini', playbook: 'deploy.yml'
+        echo "Building new image..."
+        podman build -t myapp:latest -f- <<EOL
+        FROM openjdk:17
+        COPY myapp.jar /app.jar
+        CMD ["java", "-jar", "/app.jar"]
+        EOL
+
+        echo "Running new container..."
+        podman run -d --name myapp -p 4000:4000 myapp:latest
+        EOF
+        """
             }
         }
     }
