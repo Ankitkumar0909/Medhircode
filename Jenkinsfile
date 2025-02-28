@@ -1,24 +1,50 @@
 
-
-  pipeline {
+pipeline {
     agent any
 
+    environment {
+        SERVER_IP = "192.168.0.200"  // Remote server IP
+        APP_NAME = "myapp"
+        IMAGE_NAME = "myapp:latest"
+        TAR_FILE = "myapp.tar"
+    }
+
     stages {
-        stage('Clone Code') {
+        stage('Extract Code') {
             steps {
-                git branch: 'main', url: 'https://github.com/Ankitkumar0909/Medhircode.git'
+                git 'https://github.com/Ankitkumar0909/Medhircode.git'
             }
         }
 
-        stage('Build Backend') {
+        stage('Build JAR File with Gradle') {
             steps {
-                sh '/opt/homebrew/bin/gradle build'  // Build the backend project
+                sh './gradlew clean build'
             }
         }
 
-        stage('Run Ansible to Deploy Locally') {
+        stage('Build Podman Image') {
             steps {
-                sh '/opt/homebrew/bin/ansible-playbook -i inventory deploy_backend.yml'
+                script {
+                    podmanBuild image: “${Medhir_code}”, contextPath: '.', buildArgs: ''
+                }
+            }
+        }
+
+        stage('Save Image as TAR File') {
+            steps {
+                sh "podman save -o ${TAR_FILE} ${Medhir_code}”
+            }
+        }
+
+        stage('Upload TAR to Remote Server') {
+            steps {
+                sh "scp ${TAR_FILE} ankitm@${192.168.0.200}:/home/user/"
+            }
+        }
+
+        stage('Deploy Using Ansible') {
+            steps {
+                ansiblePlaybook credentialsId: 'ansible-ssh-key', inventory: 'inventory.ini', playbook: 'deploy.yml'
             }
         }
     }
