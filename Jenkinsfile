@@ -38,7 +38,8 @@ pipeline {
 
         stage('Upload TAR to Remote Server') {
             steps {
-                sh "scp ${TAR_FILE} ankitm@${192.168.0.200}:/home/user/"
+                sh "scp ${TAR_FILE} ankitm@192.168.0.200:/home/user/"
+
             }
         }
 
