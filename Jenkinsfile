@@ -11,7 +11,7 @@ pipeline {
     stages {
         stage('Extract Code') {
             steps {
-                git 'https://github.com/Ankitkumar0909/Medhircode.git'
+                   git branch: 'main', url: 'https://github.com/Ankitkumar0909/Medhircode.git'
             }
         }
 
