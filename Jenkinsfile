@@ -4,8 +4,8 @@ pipeline {
     environment {
         SERVER_IP = "192.168.0.200"   // Remote server IP
         SSH_USER = "ankitm"           // SSH username
-        JAR_FILE = "build/libs/backend.jar"  // Path to JAR file after build
-        REMOTE_PATH = "/shared/backend.jar"  // Destination on remote server
+        JAR_FILE = "build/libs/backend-0.0.1-SNAPSHOT.jar"  // Path to JAR file after build
+        REMOTE_PATH = "/shared/backend-0.0.1-SNAPSHOT.jar"  // Destination on remote server
     }
 
     stages {
@@ -23,7 +23,7 @@ pipeline {
 
         stage('Transfer JAR to Remote Server') {
             steps {
-                sh "scp -o StrictHostKeyChecking=no ${JAR_FILE} ankitm@192.168.0.200:/shared/backend.jar"
+                sh "scp -o StrictHostKeyChecking=no ${JAR_FILE} ankitm@192.168.0.200:/shared/backend-0.0.1-SNAPSHOT.jar"
             }
         }
 
@@ -40,8 +40,8 @@ pipeline {
         echo "Building new image..."
         podman build -t myapp:latest -f- <<EOL
         FROM openjdk:17
-        COPY backend.jar /backend.jar
-        CMD ["java", "-jar", "/backend.jar"]
+        COPY backend-0.0.1-SNAPSHOT.jar /backend-0.0.1-SNAPSHOT.jar
+        CMD ["java", "-jar", "/backend-0.0.1-SNAPSHOT.jar"]
         EOL
 
         echo "Running new container..."
