@@ -5,7 +5,9 @@ pipeline {
         SERVER_IP = "192.168.0.200"
         SSH_USER = "ankitm"
         JAR_FILE = "build/libs/backend-0.0.1-SNAPSHOT.jar"
-        REMOTE_PATH = "/home/ankitm/shared/backend-0.0.1-SNAPSHOT.jar"
+        IMAGE_NAME = "backend"
+        IMAGE_TAG = "latest"
+        TAR_FILE = "backend.tar"
     }
 
     stages {
@@ -26,51 +28,25 @@ pipeline {
             }
         }
 
-        stage('Transfer JAR to Remote Server') {
+        stage('Build Docker Image') {
             steps {
                 script {
-                    def status = sh(script: "scp -o StrictHostKeyChecking=no ${JAR_FILE} ${SSH_USER}@${SERVER_IP}:${REMOTE_PATH}", returnStatus: true)
+                    def status = sh(script: "docker build -t ${IMAGE_NAME}:${IMAGE_TAG} .", returnStatus: true)
                     if (status != 0) {
-                        error "Failed to transfer JAR to remote server."
+                        error "Docker image build failed."
                     }
                 }
             }
         }
 
-        stage('Deploy to Podman on Remote Server') {
+        stage('Save Docker Image as TAR') {
             steps {
-               script {
-    def status = sh(script: """
-        ssh -T -o StrictHostKeyChecking=no ${SSH_USER}@${SERVER_IP} << 'EOF'
-        cd /home/ankitm/shared
-
-        echo "Creating Dockerfile..."
-        cat > Dockerfile << 'EOL'
-        FROM openjdk:23-jdk-slim
-        WORKDIR /app
-        COPY /home/ankitm/shared/backend-0.0.1-SNAPSHOT.jar app.jar
-        EXPOSE 8080
-        CMD ["java", "-jar", "app.jar"]
-EOL
-
-        echo "Stopping and removing existing container if running..."
-        sudo -u podman -i podman stop backend || true
-        sudo -u podman -i podman rm backend || true
-
-        echo "Building new Podman image..."
-        cd /home/ankitm/shared
-        sudo -u podman -i podman build -t backend:latest .
-
-        echo "Running new Podman container..."
-        sudo -u podman -i podman run -d --name backend -p 8080:8080 backend:latest
-EOF
-    """, returnStatus: true)
-
-    if (status != 0) {
-        error "Deployment to Podman failed."
-    }
-}
-
+                script {
+                    def status = sh(script: "docker save -o ${TAR_FILE} ${IMAGE_NAME}:${IMAGE_TAG}", returnStatus: true)
+                    if (status != 0) {
+                        error "Failed to save Docker image as TAR."
+                    }
+                }
             }
         }
     }
