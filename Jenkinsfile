@@ -40,17 +40,18 @@ pipeline {
           EOL
           
 
-          echo "Stopping and removing existing container..."
-          sudo -u podman -i podman stop backend || true
-          sudo -u podman -i podman rm backend || true
+          ssh -o StrictHostKeyChecking=no ankitm@192.168.0.200 << 'EOF'
+echo "Stopping and removing existing container..."
+sudo -u podman -i podman stop backend || true
+sudo -u podman -i podman rm backend || true
 
-          echo "Building new image..."
-          sudo -u podman -i podman build -t backend:latest .
+echo "Building new image..."
+sudo -u podman -i podman build -t backend:latest .
 
-          echo "Running new container..."
-          sudo -u podman -i podman run -d --name backend -p 4000:4000 backend:latest
-        EOF
-        """
+echo "Running new container..."
+sudo -u podman -i podman run -d --name backend -p 4000:4000 backend:latest
+EOF
+
             }
         }
     }
