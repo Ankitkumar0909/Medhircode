@@ -59,7 +59,7 @@ pipeline {
                     sudo -u podman -i podman build -t backend:latest .
 
                     echo "Running new Podman container..."
-                    sudo -u podman -i podman run -d --name backend -p 4000:4000 backend:latest
+                    sudo -u podman -i podman run -d --name backend -p 8080:8080 backend:latest
                     EOF
                     """, returnStatus: true)
 
