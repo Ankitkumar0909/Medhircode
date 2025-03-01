@@ -58,6 +58,7 @@ EOL
         sudo -u podman -i podman rm backend || true
 
         echo "Building new Podman image..."
+        cd /home/ankitm/shared
         sudo -u podman -i podman build -t backend:latest .
 
         echo "Running new Podman container..."
