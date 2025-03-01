@@ -31,10 +31,8 @@ pipeline {
         stage('Build Docker Image') {
             steps {
                 script {
-                    def status = sh(script: "docker build -t ${IMAGE_NAME}:${IMAGE_TAG} .", returnStatus: true)
-                    if (status != 0) {
-                        error "Docker image build failed."
-                    }
+                    def dockerImage = docker.build("${IMAGE_NAME}:${IMAGE_TAG}")
+                    echo "Docker Image Built: ${dockerImage.id}"
                 }
             }
         }
