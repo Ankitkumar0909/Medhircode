@@ -34,7 +34,7 @@ pipeline {
                 cd /home/ankitm/shared
 
                 echo "Creating Dockerfile..."
-                cat > Dockerfile <<EOL
+                cat > Dockerfile <<EOF
                 FROM openjdk:17
                 COPY backend-0.0.1-SNAPSHOT.jar /backend-0.0.1-SNAPSHOT.jar
                 CMD ["java", "-jar", "/backend-0.0.1-SNAPSHOT.jar"]
