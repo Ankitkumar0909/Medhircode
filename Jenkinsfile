@@ -2,52 +2,41 @@ pipeline {
     agent any
 
     environment {
-        DOCKER_IMAGE = "backend:latest"
-        TAR_FILE = "backend.tar"
-        SERVER_USER = "ankitm"
         SERVER_IP = "192.168.0.200"
-        SERVER_PATH = "/home/ankitm/shared"  // Updated to store in the shared directory
+        SSH_USER = "ankitm"
+        JAR_FILE = "build/libs/backend-0.0.1-SNAPSHOT.jar"
+        IMAGE_NAME = "backend"
+        IMAGE_TAG = "latest"
+        TAR_FILE = "backend.tar"
     }
 
     stages {
         stage('Checkout Code') {
             steps {
-              git branch: 'main',url: 'https://github.com/Ankitkumar0909/Medhircode.git'
+                git branch: 'main', url: 'https://github.com/Ankitkumar0909/Medhircode.git'
             }
         }
 
         stage('Build JAR File with Gradle') {
             steps {
-                sh 'chmod +x ./gradlew'
-                sh './gradlew clean build'
+                script {
+                    try {
+                        sh './gradlew clean build'
+                    } catch (Exception e) {
+                        error "Gradle build failed: ${e.message}"
+                    }
+                }
             }
         }
 
-        stage('Build Docker Image') {
+        stage('Build and Save Docker Image') {
             steps {
-                sh '/usr/local/bin/docker build -t ${DOCKER_IMAGE} .'
+                script {
+                    def dockerImage = docker.build("${IMAGE_NAME}:${IMAGE_TAG}")
+                    dockerImage.save("${TAR_FILE}")
+                    echo "Docker Image Built and Saved: ${dockerImage.id}"
+                }
             }
-        }
-
-        stage('Save Docker Image as TAR') {
-            steps {
-                sh '/usr/local/bin/docker save -o ${TAR_FILE} ${DOCKER_IMAGE}'
-            }
-        }
-
-        stage('Transfer TAR to Server') {
-            steps {
-                sh 'scp ${TAR_FILE} ${SERVER_USER}@${SERVER_IP}:${SERVER_PATH}/${TAR_FILE}'
-            }
-        }
-    }
-
-    post {
-        success {
-            echo "TAR file successfully transferred to the server's shared directory!"
-        }
-        failure {
-            echo "Process failed!"
         }
     }
 }
