@@ -40,7 +40,7 @@ pipeline {
           EOL
           
 
-          ssh -o StrictHostKeyChecking=no ankitm@192.168.0.200 << 'EOF'
+       
 echo "Stopping and removing existing container..."
 sudo -u podman -i podman stop backend || true
 sudo -u podman -i podman rm backend || true
