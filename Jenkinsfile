@@ -17,40 +17,55 @@ pipeline {
 
         stage('Build JAR File with Gradle') {
             steps {
-                sh './gradlew clean build'
+                try {
+                    sh './gradlew clean build'
+                } catch (err) {
+                    echo "Failed to build JAR: ${err}"
+                    currentBuild.result = 'FAILURE'
+                }
             }
         }
 
         stage('Transfer JAR to Remote Server') {
             steps {
-                sh "scp -o StrictHostKeyChecking=no ${JAR_FILE} ${SSH_USER}@${SERVER_IP}:${REMOTE_PATH}"
+                try {
+                    sh "scp -o StrictHostKeyChecking=no ${JAR_FILE} ${SSH_USER}@${SERVER_IP}:${REMOTE_PATH}"
+                } catch (err) {
+                    echo "Failed to transfer JAR: ${err}"
+                    currentBuild.result = 'FAILURE'
+                }
             }
         }
 
         stage('Deploy to Podman on Remote Server') {
             steps {
-                sh """
-                ssh -T -o StrictHostKeyChecking=no ${SSH_USER}@${SERVER_IP} << 'EOF'
-                cd /home/ankitm/shared
+                try {
+                    sh """
+                    ssh -T -o StrictHostKeyChecking=no ${SSH_USER}@${SERVER_IP} << 'EOF'
+                    cd /home/ankitm/shared
 
-                echo "Creating Dockerfile..."
-               cat > Dockerfile << 'EOL'
-                FROM openjdk:17
-                COPY backend-0.0.1-SNAPSHOT.jar /backend-0.0.1-SNAPSHOT.jar
-                CMD ["java", "-jar", "/backend-0.0.1-SNAPSHOT.jar"]
-                EOL
+                    echo "Creating Dockerfile..."
+                    cat > Dockerfile << 'EOL'
+                    FROM openjdk:17
+                    COPY backend-0.0.1-SNAPSHOT.jar /backend-0.0.1-SNAPSHOT.jar
+                    CMD ["java", "-jar", "/backend-0.0.1-SNAPSHOT.jar"]
+                    EOL
 
-                echo "Stopping and removing existing container..."
-                sudo -u podman -i podman stop backend || true
-                sudo -u podman -i podman rm backend || true
+                    echo "Stopping and removing existing container..."
+                    sudo -u podman -i podman stop backend || true
+                    sudo -u podman -i podman rm backend || true
 
-                echo "Building new image..."
-                sudo -u podman -i podman build -t backend:latest .
+                    echo "Building new image..."
+                    sudo -u podman -i podman build -t backend:latest .
 
-                echo "Running new container..."
-                sudo -u podman -i podman run -d --name backend -p 4000:4000 backend:latest
-                EOF
-                """
+                    echo "Running new container..."
+                    sudo -u podman -i podman run -d --name backend -p 4000:4000 backend:latest
+                    EOF
+                    """
+                } catch (err) {
+                    echo "Deployment failed: ${err}"
+                    currentBuild.result = 'FAILURE'
+                }
             }
         }
     }
