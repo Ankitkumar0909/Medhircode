@@ -30,11 +30,11 @@ pipeline {
         stage('Deploy to Podman on Remote Server') {
             steps {
                 sh """
-                ssh -o StrictHostKeyChecking=no ${SSH_USER}@${SERVER_IP} << 'EOF'
+                ssh -T -o StrictHostKeyChecking=no ${SSH_USER}@${SERVER_IP} << 'EOF'
                 cd /home/ankitm/shared
 
                 echo "Creating Dockerfile..."
-                cat << 'EOL' > Dockerfile
+               cat > Dockerfile << 'EOL'
                 FROM openjdk:17
                 COPY backend-0.0.1-SNAPSHOT.jar /backend-0.0.1-SNAPSHOT.jar
                 CMD ["java", "-jar", "/backend-0.0.1-SNAPSHOT.jar"]
