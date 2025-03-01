@@ -33,18 +33,18 @@ pipeline {
         cd /shared/
 
         echo "Stopping and removing existing container..."
-        podman stop myapp || true
-        podman rm myapp || true
+        sudo -u podman -i podman stop backend || true
+        sudo -u podman -i podman rm backend || true
 
         echo "Building new image..."
-        podman build -t myapp:latest -f- <<EOL
+        sudo -u podman -i podman build -t myapp:latest -f- <<EOL
         FROM openjdk:17
         COPY backend-0.0.1-SNAPSHOT.jar /backend-0.0.1-SNAPSHOT.jar
         CMD ["java", "-jar", "/backend-0.0.1-SNAPSHOT.jar"]
         EOL
 
         echo "Running new container..."
-        podman run -d --name backend -p 4000:4000 backend:latest
+        sudo -u podman -i podman run -d --name backend -p 4000:4000 backend:latest
         EOF
         """
             }
