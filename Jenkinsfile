@@ -46,9 +46,11 @@ pipeline {
 
                     echo "Creating Dockerfile..."
                     cat > Dockerfile << 'EOL'
-                    FROM openjdk:17
-                    COPY backend-0.0.1-SNAPSHOT.jar /backend-0.0.1-SNAPSHOT.jar
-                    CMD ["java", "-jar", "/backend-0.0.1-SNAPSHOT.jar"]
+                    FROM openjdk:23-jdk-slim
+                    WORKDIR /app
+                    COPY backend-0.0.1-SNAPSHOT.jar app.jar
+                    EXPOSE 8080
+                    CMD ["java", "-jar", "app.jar"]
                     EOL
 
                     echo "Stopping and removing existing container if running..."
