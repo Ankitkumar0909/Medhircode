@@ -51,7 +51,7 @@ pipeline {
                     COPY backend-0.0.1-SNAPSHOT.jar app.jar
                     EXPOSE 8080
                     CMD ["java", "-jar", "app.jar"]
-                    EOL
+                    'EOL'
 
                     echo "Stopping and removing existing container if running..."
                     sudo -u podman -i podman stop backend || true
