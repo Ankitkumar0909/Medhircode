@@ -30,7 +30,7 @@ pipeline {
     steps {
         sh """
         ssh -o StrictHostKeyChecking=no ankitm@192.168.0.200 << 'EOF'
-        cd /shared/
+        cd /home/ankitm/shared
 
         echo "Stopping and removing existing container..."
         sudo -u podman -i podman stop backend || true
@@ -39,7 +39,8 @@ pipeline {
         echo "Building new image..."
         sudo -u podman -i podman build -t myapp:latest -f- <<EOL
         FROM openjdk:17
-        COPY backend-0.0.1-SNAPSHOT.jar /backend-0.0.1-SNAPSHOT.jar
+        COPY /home/ankitm/shared/backend-0.0.1-SNAPSHOT.jar /backend-0.0.1-SNAPSHOT.jar
+
         CMD ["java", "-jar", "/backend-0.0.1-SNAPSHOT.jar"]
         EOL
 
