@@ -38,7 +38,7 @@ pipeline {
                 FROM openjdk:17
                 COPY backend-0.0.1-SNAPSHOT.jar /backend-0.0.1-SNAPSHOT.jar
                 CMD ["java", "-jar", "/backend-0.0.1-SNAPSHOT.jar"]
-                EOL
+                EOF
 
                 echo "Stopping and removing existing container..."
                 sudo -u podman -i podman stop backend || true
