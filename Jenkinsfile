@@ -2,10 +2,10 @@ pipeline {
     agent any
 
     environment {
-        SERVER_IP = "192.168.0.200"   // Remote server IP
-        SSH_USER = "ankitm"           // SSH username
-        JAR_FILE = "build/libs/backend-0.0.1-SNAPSHOT.jar"  // Path to JAR file after build
-        REMOTE_PATH = "/home/ankitm/shared/backend-0.0.1-SNAPSHOT.jar"  // Destination on remote server
+        SERVER_IP = "192.168.0.200"
+        SSH_USER = "ankitm"
+        JAR_FILE = "build/libs/backend-0.0.1-SNAPSHOT.jar"
+        REMOTE_PATH = "/home/ankitm/shared/backend-0.0.1-SNAPSHOT.jar"
     }
 
     stages {
@@ -17,30 +17,30 @@ pipeline {
 
         stage('Build JAR File with Gradle') {
             steps {
-                try {
-                    sh './gradlew clean build'
-                } catch (err) {
-                    echo "Failed to build JAR: ${err}"
-                    currentBuild.result = 'FAILURE'
+                script {
+                    def status = sh(script: './gradlew clean build', returnStatus: true)
+                    if (status != 0) {
+                        error "Build failed. Check logs for details."
+                    }
                 }
             }
         }
 
         stage('Transfer JAR to Remote Server') {
             steps {
-                try {
-                    sh "scp -o StrictHostKeyChecking=no ${JAR_FILE} ${SSH_USER}@${SERVER_IP}:${REMOTE_PATH}"
-                } catch (err) {
-                    echo "Failed to transfer JAR: ${err}"
-                    currentBuild.result = 'FAILURE'
+                script {
+                    def status = sh(script: "scp -o StrictHostKeyChecking=no ${JAR_FILE} ${SSH_USER}@${SERVER_IP}:${REMOTE_PATH}", returnStatus: true)
+                    if (status != 0) {
+                        error "Failed to transfer JAR to remote server."
+                    }
                 }
             }
         }
 
         stage('Deploy to Podman on Remote Server') {
             steps {
-                try {
-                    sh """
+                script {
+                    def status = sh(script: """
                     ssh -T -o StrictHostKeyChecking=no ${SSH_USER}@${SERVER_IP} << 'EOF'
                     cd /home/ankitm/shared
 
@@ -51,20 +51,21 @@ pipeline {
                     CMD ["java", "-jar", "/backend-0.0.1-SNAPSHOT.jar"]
                     EOL
 
-                    echo "Stopping and removing existing container..."
+                    echo "Stopping and removing existing container if running..."
                     sudo -u podman -i podman stop backend || true
                     sudo -u podman -i podman rm backend || true
 
-                    echo "Building new image..."
+                    echo "Building new Podman image..."
                     sudo -u podman -i podman build -t backend:latest .
 
-                    echo "Running new container..."
+                    echo "Running new Podman container..."
                     sudo -u podman -i podman run -d --name backend -p 4000:4000 backend:latest
                     EOF
-                    """
-                } catch (err) {
-                    echo "Deployment failed: ${err}"
-                    currentBuild.result = 'FAILURE'
+                    """, returnStatus: true)
+
+                    if (status != 0) {
+                        error "Deployment to Podman failed."
+                    }
                 }
             }
         }
