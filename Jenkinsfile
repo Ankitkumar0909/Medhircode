@@ -38,7 +38,7 @@ pipeline {
 
         echo "Building new image..."
         sudo -u podman -i podman build -t backend:latest -f- <<EOL
-        FROM openjdk:23
+        FROM openjdk:17
         COPY /home/ankitm/shared/backend-0.0.1-SNAPSHOT.jar /backend-0.0.1-SNAPSHOT.jar
 
         CMD ["java", "-jar", "/backend-0.0.1-SNAPSHOT.jar"]
