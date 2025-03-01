@@ -34,11 +34,11 @@ pipeline {
                 cd /home/ankitm/shared
 
                 echo "Creating Dockerfile..."
-                cat > Dockerfile <<EOF
+                cat << 'EOL' > Dockerfile
                 FROM openjdk:17
                 COPY backend-0.0.1-SNAPSHOT.jar /backend-0.0.1-SNAPSHOT.jar
                 CMD ["java", "-jar", "/backend-0.0.1-SNAPSHOT.jar"]
-                EOF
+                EOL
 
                 echo "Stopping and removing existing container..."
                 sudo -u podman -i podman stop backend || true
