@@ -62,7 +62,7 @@ pipeline {
                         podman stop backend || true
                         podman rm backend || true
                         podman load -i ${SHARED_DIR}/${TAR_FILE}
-                        podman run -d -p 8080:8080 --name backend backend:latest
+                        podman run -d -p 4000:4000 --name backend backend:latest
                         EOF
                     """
                     echo "Deployment with Podman completed successfully."
