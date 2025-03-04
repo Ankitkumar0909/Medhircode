@@ -4,12 +4,11 @@ pipeline {
     environment {
         SERVER_IP = "192.168.0.200"
         SSH_USER = "ankitm"
-        SHARED_DIR = "/home/${SSH_USER}/shared"  // Updated to shared directory
-        JAR_FILE = "build/libs/backend-0.0.1-SNAPSHOT.jar"
+        SHARED_DIR = "/home/${SSH_USER}/shared"
         IMAGE_NAME = "backend"
         IMAGE_TAG = "latest"
         TAR_FILE = "backend.tar"
-        DOCKER_CMD = "/opt/homebrew/bin/docker" // Docker path
+        DOCKER_CMD = "/opt/homebrew/bin/docker"
     }
 
     stages {
@@ -51,6 +50,22 @@ pipeline {
                 script {
                     sh "scp ${TAR_FILE} ${SSH_USER}@${SERVER_IP}:${SHARED_DIR}/"
                     echo "TAR file transferred to shared directory successfully."
+                }
+            }
+        }
+
+        stage('Deploy with Podman on Server') {
+            steps {
+                script {
+                    sh """
+                        ssh ${SSH_USER}@${SERVER_IP} << EOF
+                        podman stop backend || true
+                        podman rm backend || true
+                        podman load -i ${SHARED_DIR}/${TAR_FILE}
+                        podman run -d -p 8080:8080 --name backend backend:latest
+                        EOF
+                    """
+                    echo "Deployment with Podman completed successfully."
                 }
             }
         }
