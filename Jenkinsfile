@@ -2,19 +2,21 @@ pipeline {
     agent any
 
     environment {
-        SERVER_IP = "192.168.0.200"
-        SSH_USER = "ankitm"
-        SHARED_DIR = "/home/${SSH_USER}/shared"
+        DOCKER_CMD = "docker"
         IMAGE_NAME = "backend"
         IMAGE_TAG = "latest"
         TAR_FILE = "backend.tar"
-        DOCKER_CMD = "/opt/homebrew/bin/docker"
+        SSH_USER = "ankitm"
+        SERVER_IP = "192.168.0.200"
+        SHARED_DIR = "/home/ankitm/shared"
+        GIT_REPO = "https://github.com/Ankitkumar0909/Medhircode.git"
+        GIT_BRANCH = "main"
     }
 
     stages {
         stage('Checkout Code') {
             steps {
-                git branch: 'main', url: 'https://github.com/Ankitkumar0909/Medhircode.git'
+                git branch: GIT_BRANCH, url: GIT_REPO
             }
         }
 
@@ -35,7 +37,7 @@ pipeline {
             steps {
                 script {
                     try {
-                        sh "${DOCKER_CMD} build -t ${IMAGE_NAME}:${IMAGE_TAG} ."
+                        sh "${DOCKER_CMD} build --platform=linux/amd64 -t ${IMAGE_NAME}:${IMAGE_TAG} ."
                         sh "${DOCKER_CMD} save -o ${TAR_FILE} ${IMAGE_NAME}:${IMAGE_TAG}"
                         echo "Docker Image Built and Saved: ${IMAGE_NAME}:${IMAGE_TAG}"
                     } catch (Exception e) {
@@ -58,14 +60,13 @@ pipeline {
             steps {
                 script {
                     sh """
-                        ssh ${SSH_USER}@${SERVER_IP} << EOF
-                        sudo -u podman -i podman stop backend || true
-                        sudo -u podman -i podman rm backend || true
-                        sudo -u podman -i podman load -i ${SHARED_DIR}/${TAR_FILE}
-                        sudo -u podman -i podman run -d -p 4000:4000 --name backend backend:latest
-                        EOF
+                    ssh ${SSH_USER}@${SERVER_IP} << EOF
+                    sudo -u podman -i podman stop backend || true
+                    sudo -u podman -i podman rm backend || true
+                    sudo -u podman -i podman load -i ${SHARED_DIR}/${TAR_FILE}
+                    sudo -u podman -i podman run -d -p 4000:4000 --name backend backend:latest
+                    EOF
                     """
-                    echo "Deployment with Podman completed successfully."
                 }
             }
         }
