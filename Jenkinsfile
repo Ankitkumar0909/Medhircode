@@ -47,7 +47,7 @@ pipeline {
             }
         }
 
-        stage('Transfer TAR File to Shared Directory on Server') {
+        stage('Transfer TAR File to Server') {
             steps {
                 script {
                     try {
@@ -65,11 +65,20 @@ pipeline {
                 script {
                     try {
                         sh """
-                        ssh ${SSH_USER}@${SERVER_IP} "
-                            sudo -u podman -i podman stop backend || true && \
-                            sudo -u podman -i podman rm backend || true && \
-                            sudo -u podman -i podman load -i ${SHARED_DIR}/${TAR_FILE} && \
+                        ssh ${SSH_USER}@${SERVER_IP} "set -x
+                            sudo -u podman -i podman stop backend || true
+                            echo '🛑 Stopped backend container, exit code: $?'
+
+                            sudo -u podman -i podman rm backend || true
+                            echo '🗑 Removed backend container, exit code: $?'
+
+                            sudo -u podman -i podman load -i ${SHARED_DIR}/${TAR_FILE}
+                            echo '📦 Loaded image, exit code: $?'
+
                             sudo -u podman -i podman run -d -p 4000:4000 --name backend backend:latest
+                            echo '🚀 Started new container, exit code: $?'
+
+                            podman ps -a | grep backend
                         "
                         """
                         echo "✅ Deployment with Podman completed."
@@ -83,13 +92,22 @@ pipeline {
         stage('Verify Deployment') {
             steps {
                 script {
-                    sh """
-                    ssh ${SSH_USER}@${SERVER_IP} "
-                        sudo -u podman -i podman ps -a | grep backend && \
-                        sudo -u podman -i podman logs backend
-                    "
-                    """
-                    echo "✅ Deployment verification completed."
+                    try {
+                        def result = sh(script: """
+                        ssh ${SSH_USER}@${SERVER_IP} "
+                            podman ps -a | grep backend && \
+                            podman logs backend
+                        "
+                        """, returnStatus: true)
+
+                        if (result != 0) {
+                            error "❌ Deployment verification failed. Container is not running!"
+                        } else {
+                            echo "✅ Deployment verification completed successfully."
+                        }
+                    } catch (Exception e) {
+                        error "❌ Deployment verification failed: ${e.message}"
+                    }
                 }
             }
         }
