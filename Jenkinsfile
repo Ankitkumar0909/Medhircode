@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     environment {
-        DOCKER_CMD = "docker"
+        DOCKER_CMD = "/opt/homebrew/bin/docker"
         IMAGE_NAME = "backend"
         IMAGE_TAG = "latest"
         TAR_FILE = "backend.tar"
