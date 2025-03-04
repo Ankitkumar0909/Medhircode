@@ -59,10 +59,10 @@ pipeline {
                 script {
                     sh """
                         ssh ${SSH_USER}@${SERVER_IP} << EOF
-                        podman stop backend || true
-                        podman rm backend || true
-                        podman load -i ${SHARED_DIR}/${TAR_FILE}
-                        podman run -d -p 4000:4000 --name backend backend:latest
+                        sudo -u podman -i podman stop backend || true
+                        sudo -u podman -i podman rm backend || true
+                        sudo -u podman -i podman load -i ${SHARED_DIR}/${TAR_FILE}
+                        sudo -u podman -i podman run -d -p 4000:4000 --name backend backend:latest
                         EOF
                     """
                     echo "Deployment with Podman completed successfully."
