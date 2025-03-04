@@ -47,7 +47,7 @@ pipeline {
             }
         }
 
-        stage('Transfer TAR File to Shared Directory on Server') {
+        stage('Transfer TAR File to Server') {
             steps {
                 script {
                     try {
@@ -64,13 +64,16 @@ pipeline {
             steps {
                 script {
                     try {
-                        sh '''ssh ${SSH_USER}@${SERVER_IP} <<EOF
-                            set -x
-                            sudo -u podman -i podman stop backend || true
-                            sudo -u podman -i podman rm backend || true
-                            sudo -u podman -i podman load -i ${SHARED_DIR}/${TAR_FILE}
-                            sudo -u podman -i podman run -d -p 4000:4000 --name backend backend:latest
-                        EOF'''
+                        sh """
+                            ssh ${SSH_USER}@${SERVER_IP} "
+                            set -xe;
+                            sudo -u podman -i podman stop backend || true;
+                            sudo -u podman -i podman rm backend || true;
+                            sudo -u podman -i podman load -i ${SHARED_DIR}/${TAR_FILE};
+                            sudo -u podman -i podman run -d -p 4000:4000 --name backend backend:latest;
+                            echo '✅ Backend container started successfully.'
+                            "
+                        """
                         echo "✅ Deployment with Podman completed."
                     } catch (Exception e) {
                         error "❌ Deployment failed: ${e.message}"
@@ -82,12 +85,18 @@ pipeline {
         stage('Verify Deployment') {
             steps {
                 script {
-                    sh '''ssh ${SSH_USER}@${SERVER_IP} <<EOF
-                        set -x
-                        sudo -u podman -i podman ps -a | grep backend
-                        sudo -u podman -i podman logs backend
-                    EOF'''
-                    echo "✅ Deployment verification completed."
+                    try {
+                        sh """
+                            ssh ${SSH_USER}@${SERVER_IP} "
+                            set -xe;
+                            sudo -u podman -i podman ps -a | grep backend;
+                            sudo -u podman -i podman logs backend;
+                            "
+                        """
+                        echo "✅ Deployment verification completed."
+                    } catch (Exception e) {
+                        error "❌ Deployment verification failed: ${e.message}"
+                    }
                 }
             }
         }
