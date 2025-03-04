@@ -8,7 +8,7 @@ WORKDIR /app
 COPY build/libs/backend-0.0.1-SNAPSHOT.jar app.jar
 
 # Expose the application port (default for Spring Boot)
-EXPOSE 8080
+EXPOSE 4000
 
 # Command to run the application
 CMD ["java", "-jar", "app.jar"]
