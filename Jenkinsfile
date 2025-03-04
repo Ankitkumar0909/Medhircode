@@ -4,11 +4,12 @@ pipeline {
     environment {
         SERVER_IP = "192.168.0.200"
         SSH_USER = "ankitm"
+        SHARED_DIR = "/home/${SSH_USER}/shared"  // Updated to shared directory
         JAR_FILE = "build/libs/backend-0.0.1-SNAPSHOT.jar"
         IMAGE_NAME = "backend"
         IMAGE_TAG = "latest"
         TAR_FILE = "backend.tar"
-        DOCKER_CMD = "/opt/homebrew/bin/docker" // Updated Docker Path
+        DOCKER_CMD = "/opt/homebrew/bin/docker" // Docker path
     }
 
     stages {
@@ -41,6 +42,15 @@ pipeline {
                     } catch (Exception e) {
                         error "Docker build or save failed: ${e.message}"
                     }
+                }
+            }
+        }
+
+        stage('Transfer TAR File to Shared Directory on Server') {
+            steps {
+                script {
+                    sh "scp ${TAR_FILE} ${SSH_USER}@${SERVER_IP}:${SHARED_DIR}/"
+                    echo "TAR file transferred to shared directory successfully."
                 }
             }
         }
