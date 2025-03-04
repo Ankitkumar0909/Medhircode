@@ -60,7 +60,7 @@ pipeline {
             steps {
                 script {
                     sh """
-                    ssh ${SSH_USER}@${SERVER_IP} << EOF
+                    ssh -tt ${SSH_USER}@${SERVER_IP} << EOF
                     sudo -u podman -i podman stop backend || true
                     sudo -u podman -i podman rm backend || true
                     sudo -u podman -i podman load -i ${SHARED_DIR}/${TAR_FILE}
